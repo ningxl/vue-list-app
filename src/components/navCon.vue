@@ -19,7 +19,7 @@
             <i class="el-icon-menu"></i>
             <span slot="title">首页</span>
           </el-menu-item>
-          <el-menu-item index="/navCon/chart">
+          <el-menu-item index="/navCon/table">
             <i class="el-icon-s-order"></i>
             <span slot="title">管理</span>
           </el-menu-item>
