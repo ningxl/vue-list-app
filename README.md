@@ -1,6 +1,6 @@
 # vueapp
 
-vue-list-app是一个简单列表管理的前端项目，基于Vue+Element实现。后端基于Express+Mongodb实现，地址：https://github.com/ningxl/vue-list-server
+> A Vue.js project
 
 ## Build Setup
 

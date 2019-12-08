@@ -2,7 +2,7 @@
   <div>
     <div class="box">
       <div class="tborder">
-        <div class="left">事件列表</div>
+        <div class="left">账单列表</div>
         <div class="right">
           <el-button size="small" type="primary" @click="dialogFormVisible = true">+新增</el-button>
         </div>
@@ -13,14 +13,9 @@
         :data="tableData"
         :header-cell-style="{lineHeight:'40px'}"
       >
-        <el-table-column
-          label="优先级"
-          min-width="10"
-          align="center"
-          :sortable="'custom'"
-          prop="priority"
-        ></el-table-column>
-        <el-table-column label="名称" min-width="10" align="center" prop="name"></el-table-column>
+        <el-table-column label="日期" min-width="10" align="center" :sortable="'custom'" prop="time"></el-table-column>
+        <el-table-column label="类型" min-width="10" align="center" prop="type"></el-table-column>
+        <el-table-column label="金额" min-width="10" align="center" prop="cost"></el-table-column>
         <el-table-column label="详细描述" min-width="30" align="center" prop="detail"></el-table-column>
         <el-table-column align="center" min-width="10" label="操作">
           <template slot-scope="scope">
@@ -38,19 +33,22 @@
         </el-table-column>
       </el-table>
 
-      <el-dialog title="新增事件" :visible.sync="dialogFormVisible">
+      <el-dialog title="新增账单" :visible.sync="dialogFormVisible">
         <el-form :model="form" :rules="rules" ref="form" class="demo-ruleForm">
-          <el-form-item label="优先级" :label-width="formLabelWidth" prop="priority">
-            <el-select v-model="form.priority" placeholder="请选择优先级">
-              <el-option label="1" value="1"></el-option>
-              <el-option label="2" value="2"></el-option>
-              <el-option label="3" value="3"></el-option>
-              <el-option label="4" value="4"></el-option>
-              <el-option label="5" value="5"></el-option>
+          <el-form-item label="日期" :label-width="formLabelWidth" prop="time">
+            <el-date-picker type="date" placeholder="选择日期" v-model="form.time"></el-date-picker>
+          </el-form-item>
+          <el-form-item label="类型" :label-width="formLabelWidth" prop="type">
+            <el-select v-model="form.type" placeholder="请选择支出类型">
+              <el-option label="饮食" value="饮食"></el-option>
+              <el-option label="生活" value="生活"></el-option>
+              <el-option label="娱乐" value="娱乐"></el-option>
+              <el-option label="医疗" value="医疗"></el-option>
+              <el-option label="其它" value="其它"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="名称" :label-width="formLabelWidth">
-            <el-input v-model="form.name" autocomplete="off"></el-input>
+          <el-form-item label="金额" :label-width="formLabelWidth" prop="cost">
+            <el-input v-model="form.cost" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="详细描述" :label-width="formLabelWidth">
             <el-input v-model="form.detail" autocomplete="off"></el-input>
@@ -61,19 +59,23 @@
           <el-button type="primary" @click="addData('form')">确 定</el-button>
         </div>
       </el-dialog>
-      <el-dialog title="编辑事件" :visible.sync="dialogEditFormVisible">
-        <el-form :model="form">
-          <el-form-item label="优先级" :label-width="formLabelWidth">
-            <el-select v-model="editForm.priority" placeholder="请选择优先级">
-              <el-option label="1" value="1"></el-option>
-              <el-option label="2" value="2"></el-option>
-              <el-option label="3" value="3"></el-option>
-              <el-option label="4" value="4"></el-option>
-              <el-option label="5" value="5"></el-option>
+
+      <el-dialog title="编辑账单" :visible.sync="dialogEditFormVisible">
+        <el-form :model="editForm" :rules="rules" ref="editForm">
+          <el-form-item label="日期" :label-width="formLabelWidth" prop="time">
+            <el-date-picker type="date" placeholder="选择日期" v-model="editForm.time"></el-date-picker>
+          </el-form-item>
+          <el-form-item label="类型" :label-width="formLabelWidth" prop="type">
+            <el-select v-model="editForm.type" placeholder="请选择支出类型">
+              <el-option label="饮食" value="饮食"></el-option>
+              <el-option label="生活" value="生活"></el-option>
+              <el-option label="娱乐" value="娱乐"></el-option>
+              <el-option label="医疗" value="医疗"></el-option>
+              <el-option label="其它" value="其它"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="名称" :label-width="formLabelWidth">
-            <el-input v-model="editForm.name" autocomplete="off"></el-input>
+          <el-form-item label="金额" :label-width="formLabelWidth" prop="cost">
+            <el-input v-model="editForm.cost" autocomplete="off"></el-input>
           </el-form-item>
           <el-form-item label="详细描述" :label-width="formLabelWidth">
             <el-input v-model="editForm.detail" autocomplete="off"></el-input>
@@ -81,7 +83,7 @@
         </el-form>
         <div slot="footer" class="dialog-footer">
           <el-button @click="dialogEditFormVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogEditFormVisible = false, editData()">确 定</el-button>
+          <el-button type="primary" @click="editData('editForm')">确 定</el-button>
         </div>
       </el-dialog>
     </div>
@@ -91,6 +93,24 @@
 <script>
 export default {
   data() {
+     var checkCost = (rule, value, callback) => {
+       value = parseFloat(value);
+       console.log(value);
+        if (!value) {
+          return callback(new Error('请输入大于0的数字'));
+        }
+        setTimeout(() => {
+          if (Number.isNaN(value)) {
+            callback(new Error('请输入大于0的数字'));
+          } else {
+            if (value <= 0) {
+              callback(new Error('请输入大于0的数字'));
+            } else {
+              callback();
+            }
+          }
+        }, 0);
+      };
     return {
       tableData: [],
       search: "",
@@ -98,28 +118,33 @@ export default {
       dialogFormVisible: false,
       dialogEditFormVisible: false,
       form: {
-        priority: "",
-        name: "",
+        time: "",
+        type: "",
+        cost: "",
         detail: ""
       },
       editForm: {
-        priority: "",
-        name: "",
+        time: "",
+        type: "",
+        cost: "",
         detail: ""
       },
       editIndex: 0,
       editRows: [],
       formLabelWidth: "120px",
       rules: {
-        priority: [{ required: true, message: "请输入优先级", trigger: "blur" }]
+        time: [{ required: true, message: "请输入日期", trigger: "blur" }],
+        type: [{ required: true, message: "请输入类型", trigger: "blur" }],
+        cost: [{ required: true, validator: checkCost, trigger: 'blur' }],
       }
     };
   },
   methods: {
     handleEdit(index, row, rows) {
       this.dialogEditFormVisible = true;
-      this.editForm.priority = row.priority;
-      this.editForm.name = row.name;
+      this.editForm.time = row.time;
+      this.editForm.type = row.type;
+      this.editForm.cost = row.cost;
       this.editForm.detail = row.detail;
       this.editIndex = index;
       this.editRows = rows;
@@ -128,15 +153,21 @@ export default {
       rows.splice(index, 1);
       this.updateModel();
     },
-    editData() {
-      console.log(this.editRows.splice(this.editIndex, 1));
-
+    editData(formName) {
+      console.log(typeof(this.editForm.time));
+      this.$refs[formName].validate(valid => {
+        if (valid) {
+          console.log(this.editRows.splice(this.editIndex, 1));
       this.tableData.push({
-        priority: this.editForm.priority,
-        name: this.editForm.name,
+        time: typeof(this.editForm.time)=='string'?this.editForm.time:this.editForm.time.Format("yyyy-MM-dd"),
+        type: this.editForm.type,
+        cost: parseFloat(this.editForm.cost),
         detail: this.editForm.detail
       });
       this.updateModel();
+      this.dialogEditFormVisible = false;
+              }
+      });
     },
     updateModel() {
       this.axios.post("setData", this.tableData).then(res => {
@@ -154,8 +185,9 @@ export default {
       this.$refs[formName].validate(valid => {
         if (valid) {
           this.tableData.push({
-            priority: this.form.priority,
-            name: this.form.name,
+            time: this.form.time.Format("yyyy-MM-dd"),
+            type: this.form.type,
+            cost: parseFloat(this.form.cost),
             detail: this.form.detail
           });
           this.updateModel();
@@ -171,13 +203,25 @@ export default {
       //按照降序排序
       if (sortingType == "descending") {
         this.tableData = this.tableData.sort(
-          (a, b) => b[fieldName] - a[fieldName]
+          (a, b) => {            if(b[fieldName] > a[fieldName])
+            return 1;
+            else if(b[fieldName] < a[fieldName])
+            return -1;
+            else
+            return 0;}
         );
       }
       //按照升序排序
       else {
         this.tableData = this.tableData.sort(
-          (a, b) => a[fieldName] - b[fieldName]
+          (a, b) =>{
+            if(b[fieldName] < a[fieldName])
+            return 1;
+            else if(b[fieldName] > a[fieldName])
+            return -1;
+            else
+            return 0;
+          }
         );
       }
     }
